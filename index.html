@@ -194,7 +194,9 @@ header img{height:58px;width:58px;object-fit:contain;filter:drop-shadow(0 2px 6p
   </div>
   <div class="nav-links">
     <a href="dashboard.html" class="nav-btn">אלפון כוח אדם</a>
-    <a href="index.html"     class="nav-btn active">משימות ותקציב</a>
+    <a href="tasks.html"     class="nav-btn active">משימות ותקציב</a>
+    <button class="nav-btn" onclick="exportData()" title="שמור קובץ גיבוי">⬇ ייצוא</button>
+    <label class="nav-btn" style="cursor:pointer" title="טען קובץ גיבוי">⬆ ייבוא<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
   </div>
 </header>
 
@@ -818,6 +820,37 @@ document.getElementById('filterPriority').addEventListener('change',renderTasks)
 
 populateSelects();
 renderAll();
+
+function exportData() {
+  const data = { tasks, incomes, exported: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'oref9220_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.tasks || !data.incomes) throw new Error();
+      tasks = data.tasks;
+      incomes = data.incomes;
+      save('tasks2', tasks);
+      save('incomes', incomes);
+      renderAll();
+      alert('✓ הנתונים נטענו בהצלחה — ' + tasks.length + ' משימות, ' + incomes.length + ' הכנסות');
+    } catch {
+      alert('❌ קובץ לא תקין');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+  input.value = '';
+}
 </script>
 </body>
 </html>
